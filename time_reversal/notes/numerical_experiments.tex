@@ -1,0 +1,167 @@
+% Adapted from Elchanan Mossel's template
+\documentclass[11pt]{article}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{hyperref,graphicx}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{lipsum}
+\usepackage{latexsym}
+\usepackage{multicol,caption}
+\usepackage{tikz}
+\usepackage{epsfig}
+\usepackage{fancybox}
+\setlength{\evensidemargin}{.25in}
+\setlength{\textwidth}{6in}
+\setlength{\topmargin}{-0.6in}
+\setlength{\textheight}{8.5in}
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+ %\usepackage[sort&compress,square,comma,authoryear]{natbib}
+
+\newcommand{\handout}[6]{
+   \renewcommand{\thepage}{#1-\arabic{page}}
+   \noindent
+   \begin{center}
+%\framebox{
+\doublebox{
+      \vbox{
+   \hbox to 5.78in {{\sf Photoacoustic Tomography}
+\hfill \sf #2 }
+       \vspace{4mm}
+       \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+       \vspace{2mm}
+       \hbox to 5.78in { {\em #3 \hfill #4} }
+      }
+}
+
+%}
+   \end{center}
+   \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{}{#2}{Date: #3}{ #4}{Time Reversal Related Numerical Experiments}}
+
+\textwidth=6in
+\oddsidemargin=0.25in
+\evensidemargin=0.25in
+\topmargin=-0.1in
+\footskip=0.8in
+\parindent=0.0cm
+\parskip=0.3cm
+\textheight=8.00in
+\setcounter{tocdepth} {3}
+\setcounter{secnumdepth} {2}
+\sloppy
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{conjecture}[theorem]{Conjecture}
+%\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{answer}[theorem]{Answer}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{example}[theorem]{Example}
+\newenvironment{proof}{\noindent \textbf{Proof:}}{$\Box$}
+
+\newcommand{\ignore}[1]{}
+
+\newcommand{\prob}{\mathbb{P}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\mY}{\mathbf{Y}}
+\newcommand{\mX}{\mathbf{X}}
+\newcommand{\my}{\mathbf{y}}
+\newcommand{\mH}{\mathbf{H}}
+\newcommand{\ob}{\hat{\beta}^{\text{ols}}}
+\newcommand{\rb}{\hat{\beta}^{\text{ridge}}}
+\newcommand{\lb}{\hat{\beta}^{\text{lasso}}}
+\newcommand{\Tr}{\text{Tr}}
+
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{{\bf Cov}}
+
+\usepackage{mathtools}
+\newcommand{\Inf}{\mathrm{Inf}}
+\newcommand{\I}{\mathrm{I}}
+\newcommand{\J}{\mathrm{J}}
+
+\newcommand{\eps}{\epsilon}
+\newcommand{\lam}{\lambda}
+\newcommand{\N}{\mathbb N}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\C}{\mathbb C}
+\newcommand{\CalE}{{\mathcal{E}}}
+
+\newcommand{\CalU}{{\mathcal{U}}}
+\newcommand{\F}{{\mathcal{F}}}
+\newcommand{\boldsigma}{{\boldsymbol \sigma}}
+\newcommand{\boldupsilon}{{\boldsymbol \upsilon}}
+\def\alert#1{\textcolor{red}{#1}}
+\newcommand{\qed}{\ \ \rule{1ex}{1ex}}
+\newcommand{\To}{\longrightarrow}
+\def\ind{{\rm 1\hspace{-0.
+0ex}1}}
+\renewcommand{\labelitemii}{$\star$}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\bX}{\mathbb{X}}
+\newcommand{\by}{\mathcal{\pmb{y}}}
+\newcommand{\sgn}{\text{sgn}}
+\newcommand{\tk}{\tilde{k}}
+\newcommand{\bphi}{\bar{\phi}}
+\usepackage{color}
+\newcommand{\E}{\mathbb{E}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\Lb}{\mathbf{L}}
+
+
+%\setcounter{section}{5}
+\begin{document}
+\lecture{Time Reversal Numerical Experiments}{Spring 2020}{\today}{Shuyang Qin}
+
+\section{Forward Modeling}
+Throughout the whole experimental process, I used the finite difference scheme to simulate wave propagation in unbounded domain. The scheme follows the paper: '\textbf{The perfectly matched layer for acoustic waves in absorptive media}' by Qing-Huo Liu and Jianping Tao. To be more specific, the original second order wave equation is decomposed into 2 first order equations:
+\begin{equation*}
+\begin{cases}
+\partial_{t} \mathbf{v}(\mathbf{x},t) = -\nabla p(\mathbf{x},t),\\
+\partial_t p(\mathbf{x},t) = -c^2(\mathbf{x}) \nabla \cdot \mathbf{v}(\mathbf{x},t).
+\end{cases}
+\end{equation*}
+Here $p(\mathbf{x},t)$ denotes pressure field, and vector $\mathbf{v}(\mathbf{x},t)$ denotes particle velocity fields.
+
+By complex coordinate stretching, the above formula in 2D can be modified as
+\begin{equation*}
+\begin{cases}
+\partial_t \mathbf{v}_j(\mathbf{x},t) + \omega_j(\mathbf{x}) \mathbf{v}_j(\mathbf{x},t) = -\partial_j p(\mathbf{x},t), \ \  \textup{for} \ j = 1,2,\\
+\partial_t p_j(\mathbf{x},t) + \omega_j(\mathbf{x}) p_j(\mathbf{x},t) = -c^2(\mathbf{x}) \partial_j \mathbf{v}_j(\mathbf{x},t), \ \  \textup{for} \ j = 1,2,
+\end{cases}
+\end{equation*}
+where $\mathbf{x} = (x_1,x_2), \ \mathbf{v} = (\mathbf{v}_1,\mathbf{v}_2)$, $\partial_j$ denotes partial derivative along $x_j$, and $p = p_1 + p_2$. Also, $\omega_j$ denotes the absorption coefficient along axis $x_j$ in computational domain. According to kWave package, the absorption coefficient is chosen to be a fourth order polynomial:
+\begin{equation*}
+\omega_j(\mathbf{x}) =
+\begin{cases}
+ \textup{const}*\Big(\frac{\textup{dist}(\mathbf{x},\textup{PML})}{\textup{length of PML}}\Big)^4\\
+ 0, \ \ \ \ \ \textup{otherwise}
+ \end{cases}
+\end{equation*}
+And the forward modeling follows standard-staggered finite difference scheme. We compute the pressure field at uniform standard grids $p(x_j,y_k,t_n)$, and particle velocity field at staggered grid $v_x(x_{j+1/2},y_k,t_{n+1/2})$, $v_y(x_j,y_{k+1/2},t_{n+1/2})$. The second order finite difference scheme becomes
+\begin{equation*}
+111
+\end{equation*}
+
+
+
+\end{document}
