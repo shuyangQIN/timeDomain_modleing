@@ -46,8 +46,8 @@ medium.speed = medium.speed + 500 * (dist < 500);
 %medium.speed = medium.speed+(200*sin(0.002*pi*grid.x)+100*cos(0.002*pi*grid.y)).*(abs(grid.x)<=Lx).*(abs(grid.y)<=Ly);
 
 % smoothing the medium
-% window_type = 'Gaussian';
-% medium.speed = smooth_source(medium.speed,window_type);
+window_type = 'Gaussian';
+medium.speed = smooth_source(medium.speed,window_type);
 figure
 imagesc(medium.speed)
 colormap(cmap)
@@ -55,7 +55,7 @@ title('True Velocity Model')
 colorbar
 
 % CFL number: 0.5
-grid.dt = sqrt(0.25*dx^2/max(max(medium.speed))^2);
+grid.dt = sqrt(0.09*dx^2/max(max(medium.speed))^2);
 grid.Nt = ceil(1.2*sqrt(2)*2*Lx_comp/(grid.dt*min(min(medium.speed))));
 % choose Nt to be bigger than 2 times the longest geodesic
 
@@ -70,7 +70,7 @@ source_mag = [1;1;1;1;1]*1e6;
 source_index = [1;2];
 source_num = size(source_index,1);
 source_grid = [round(source_loc(source_index,1)/dx)+(Nx+1)/2 round(source_loc(source_index,2)/dx)+(Ny+1)/2];
-source.time_dependent = 1;
+source.time_dependent = 0;
 if source.time_dependent == 0 % time dependent
     % due to limited memory, only save source-time function
     source.firing_time = [0.2;0.5]; % point source firing time
@@ -180,7 +180,7 @@ for j = 2:grid.Nt
     for k = 1:source_num
         p0(source_grid(k,1),source_grid(k,2)) = amplitude(k,j);
     end
-    if j <= 200
+    if j <= 100 || source.time_dependent == 0
         p0 = smooth_source(p0,window_type);
     end
     Up_extend = Up_extend + p0;
