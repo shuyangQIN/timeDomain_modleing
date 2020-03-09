@@ -1,6 +1,7 @@
-function sensor_data_fdm = forward_prop(grid,medium,source,sensor)
+function [sensor_data_fdm,lap_U] = forward_prop(grid,medium,source,sensor)
 cmap = customize_colormap(2);
 sensor_data_fdm = zeros(size(sensor.mask,2),grid.Nt);
+lap_U = zeros(grid.x_end-grid.x_start+1,grid.y_end-grid.y_start+1,grid.Nt);
 
 %%  Finite Difference Time Domain + Absorbing Boundary Conditions
 %   Use first order systems to to marching forward in time
@@ -8,7 +9,7 @@ sensor_data_fdm = zeros(size(sensor.mask,2),grid.Nt);
 %%  PML absorption coefficients
 grid.PML_size_x = 20;   % number of grids in PML region along one side of x-direction
 grid.PML_size_y = 20;   % number of grids in PML region along one side of y-direction
-const = 1e5;
+const = 1e2;
 grid.PML_length_x = grid.PML_size_x * grid.dx;
 grid.PML_length_y = grid.PML_size_y * grid.dy;
 PML_size_x = grid.Lx_comp - grid.PML_length_x;
@@ -34,6 +35,9 @@ Up = source.p0(2:grid.Nx-1,2:grid.Nx-1);
 %   wave speed in the interior
 speed = medium.speed(2:grid.Nx-1,2:grid.Ny-1);
 Up_extend = source.p0;
+lap_U(:,:,1) = (Up_extend(grid.x_start+1:grid.x_end+1,grid.y_start:grid.y_end) - 2*Up_extend(grid.x_start:grid.x_end,grid.y_start:grid.y_end) + Up_extend(grid.x_start-1:grid.x_end-1,grid.y_start:grid.y_end))/grid.dx^2 ...
+    + (Up_extend(grid.x_start:grid.x_end,grid.y_start+1:grid.y_end+1) - 2*Up_extend(grid.x_start:grid.x_end,grid.y_start:grid.y_end) + Up_extend(grid.x_start:grid.x_end,grid.y_start-1:grid.y_end-1))/grid.dy^2;
+lap_U(:,:,1) = lap_U(:,:,1).*medium.speed(grid.x_start:grid.x_end,grid.y_start:grid.y_end).^2;
 sensor_data_fdm(:,1) = record_data(Up_extend, [grid.x_start;grid.y_start], [grid.x_end;grid.y_end]);
 
 %% Initialize Particle Velocity field
@@ -75,16 +79,29 @@ for j = 2:grid.Nt
         p0 = smooth_source(p0,window_type);
     end
     Up_extend = Up_extend + p0;
+    lap_U(:,:,j) = (Up_extend(grid.x_start+1:grid.x_end+1,grid.y_start:grid.y_end) - 2*Up_extend(grid.x_start:grid.x_end,grid.y_start:grid.y_end) + Up_extend(grid.x_start-1:grid.x_end-1,grid.y_start:grid.y_end))/grid.dx^2 ...
+        + (Up_extend(grid.x_start:grid.x_end,grid.y_start+1:grid.y_end+1) - 2*Up_extend(grid.x_start:grid.x_end,grid.y_start:grid.y_end) + Up_extend(grid.x_start:grid.x_end,grid.y_start-1:grid.y_end-1))/grid.dy^2;
+    weight = ones(1,j); weight(1) = 0.5; weight(j) = 0.5;
+    amplitude_temp = sum(weight.*source.amplitude(:,1:j),2);
+    p1 = zeros(grid.Nx,grid.Ny);
+    for k = 1:source.num
+        p1(source.grid(k,1),source.grid(k,2)) = amplitude_temp(k);
+    end
+    if j <= 100 || source.time_dependent == 0
+        p1 = smooth_source(p1,window_type);
+    end
+    lap_U(:,:,j) = lap_U(:,:,j) + p1(grid.x_start:grid.x_end,grid.y_start:grid.y_end);
+    lap_U(:,:,j) = lap_U(:,:,j).*medium.speed(grid.x_start:grid.x_end,grid.y_start:grid.y_end).^2;
     % recording wave field at sensor locations
     sensor_data_fdm(:,j) = record_data(Up_extend, [grid.x_start;grid.y_start], [grid.x_end;grid.y_end]);
     % compute particle velocity field based on pressure field
     Vx = (-(Up_extend(2:grid.Nx,2:grid.Ny-1) - Up_extend(1:grid.Nx-1,2:grid.Ny-1))/grid.dx + C2_x.*Vx)./C1_x;
     Vy = (-(Up_extend(2:grid.Nx-1,2:grid.Ny) - Up_extend(2:grid.Nx-1,1:grid.Ny-1))/grid.dy + C2_y.*Vy)./C1_y;
-    if mod(j,10) == 0
+    if mod(j,20) == 0
         imagesc(Up_extend)
         %imagesc(p0)
         title(sprintf('time =%e s',(j-1)*grid.dt));
-        caxis([-1,1])
+        caxis([-1e-3,1e-3])
         colormap(cmap)
         colorbar
         %axis equal

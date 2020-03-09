@@ -42,8 +42,8 @@ cmap = customize_colormap(2);
 medium.density = 1;
 medium.speed = 1.000*ones(size(grid.x));
 dist = sqrt(grid.x.^2 + grid.y.^2);
-%medium.speed = medium.speed + 0.500 * (dist < 0.500);
-medium.speed = medium.speed+(0.200*sin(2*pi*grid.x)+0.100*cos(2*pi*grid.y)).*(abs(grid.x)<=0.9*Lx).*(abs(grid.y)<=0.9*Ly);
+medium.speed = medium.speed + 0.500 * (dist < 0.500);
+%medium.speed = medium.speed+(0.200*sin(2*pi*grid.x)+0.100*cos(2*pi*grid.y)).*(abs(grid.x)<=0.9*Lx).*(abs(grid.y)<=0.9*Ly);
 
 % smoothing the medium
 window_type = 'Gaussian';

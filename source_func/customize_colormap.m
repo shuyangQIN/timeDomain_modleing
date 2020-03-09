@@ -19,10 +19,10 @@ switch index
     
     case 2
         % colormap -- same as kwave
-        c = hot;
-        c = flipud(c);
-        cmap = [bone;c];
-        
+        c1 = flipud(hot);
+        c2 = bone;
+        cmap = [c2;c1];
+        %cmap = cmap(15:114,:);
     otherwise
         error('Unsupported colormap')
 end

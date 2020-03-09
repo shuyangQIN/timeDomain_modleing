@@ -14,7 +14,8 @@ if source.time_dependent == 0 % time dependent
     source.peak_freq = 10;  % peak frequency of source wavelet
     a = pi^2*source.peak_freq^2;
     t = repmat((0:grid.dt:(grid.Nt-1)*grid.dt),source.num,1);
-    amplitude = source.mag .* exp(-a*(t-source.firing_time).^2); % magnitude?
+    amplitude = source.mag .* ricker_wavelet(t,source.firing_time,sqrt(1/a));
+    %amplitude = source.mag .* exp(-a*(t-source.firing_time).^2); % magnitude?
     source.amplitude = amplitude;
     source.p0 = zeros(grid.Nx,grid.Ny);
 elseif source.time_dependent == 1 % initial displacement

@@ -128,7 +128,7 @@ while ~converged
     % check convergence
     converged = (iter>itermax)||(norm(g)<tol)||(lambda<tol);
     
-    speed_temp = reshape(1e3*sqrt(1./x),261,261);
+    speed_temp = reshape(sqrt(1./x),201,201);
     imagesc(speed_temp)
     colormap(cmap)
     colorbar

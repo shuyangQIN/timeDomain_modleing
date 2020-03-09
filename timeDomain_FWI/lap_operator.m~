@@ -1,5 +1,0 @@
-function lap_vec = lap_operator(lap_input,grid)
-if size(lap_input,2) == 1
-    lap_input = reshape(lap_input,grid.Nx,grid.Ny);
-end
-lap_extend = zeros()

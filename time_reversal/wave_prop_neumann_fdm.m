@@ -58,7 +58,7 @@ colorbar
 % CFL number: 0.1
 grid.dt = sqrt(0.04*dx^2/max(max(medium.speed))^2);
 grid.Nt = ceil(1.2*sqrt(2)*2*Lx_comp/(grid.dt*min(min(medium.speed))));
-grid.Nt = round(grid.Nt*1.5);
+grid.Nt = round(grid.Nt*2);
 
 % choose Nt to be bigger than 2 times the longest geodesic
 
